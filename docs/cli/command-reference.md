@@ -122,6 +122,8 @@ clings pick delete cleanup
 ```bash
 clings project list
 clings project add "Writing Sprint" --area "Writing" --deadline 2027-06-01
+clings project add "Launch" --heading "Prep" --heading "Ship"
+clings project add "Study Plan" --area "Learning" --outline plan.md
 clings project audit
 clings project audit --json
 
@@ -300,7 +302,10 @@ files private, and never redirect stdout onto an executing plan file.
 `projects` and `project list` (`ls`, default) provide the same list behavior.
 `project add TITLE` accepts `--notes`, `--area`, `--when`, `--deadline`,
 `--tags "docs,release"`, and output options. Dates accept `today`, `tomorrow`,
-or `YYYY-MM-DD`. `project audit` reports open-project health without writes.
+or `YYYY-MM-DD`. `--heading NAME` (repeatable) and `--outline FILE` (`-` for
+stdin; `# Heading` and `- To-do` lines) create the project with headings and
+to-dos through the `things:///json` URL command; Things cannot add headings to
+an existing project. `project audit` reports open-project health without writes.
 `areas` lists areas but does not create or rename them.
 
 `tags list` (`ls`, default) lists definitions. `tags add NAME`
