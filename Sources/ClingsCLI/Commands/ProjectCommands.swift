@@ -81,11 +81,19 @@ struct ProjectAddCommand: AsyncParsableCommand {
         one comma-separated string (unlike add --tags). Project creation is not
         recorded by clings undo.
 
+        HEADINGS: Things can only create headings together with a new project.
+        --heading (repeatable) adds empty headings; --outline reads a Markdown
+        file ('-' for stdin) where '# Title' lines become headings and '- Item'
+        lines become to-dos under the heading above them. Either option creates
+        the project through the things:///json URL command (no auth token).
+
         EXAMPLES:
           clings project add "Documentation Refresh"
           clings project add "Reading List" --notes "Collect and organize reference material"
           clings project add "Writing Sprint" --area "Writing" --when today
           clings project add "Reference Review" --deadline 2027-06-01 --tags "planning,research"
+          clings project add "Launch" --heading "Prep" --heading "Ship"
+          clings project add "Study Plan" --area "Learning" --outline plan.md
         """
     )
 
@@ -107,6 +115,12 @@ struct ProjectAddCommand: AsyncParsableCommand {
     @Option(name: .long, help: "Tags (comma-separated)")
     var tags: String?
 
+    @Option(name: .long, help: "Add an empty heading (repeatable; appended after --outline headings)")
+    var heading: [String] = []
+
+    @Option(name: .long, help: "Markdown outline file ('-' for stdin): '# Heading' and '- To-do' lines")
+    var outline: String?
+
     @OptionGroup var output: OutputOptions
 
     func run() async throws {
@@ -122,6 +136,13 @@ struct ProjectAddCommand: AsyncParsableCommand {
             .split(separator: ",")
             .map { String($0).trimmingCharacters(in: .whitespaces) } ?? []
 
+        if !heading.isEmpty || outline != nil {
+            try await createWithOutline(
+                title: trimmedTitle, client: client, when: parsedWhen, deadline: parsedDeadline, tags: tagList
+            )
+            return
+        }
+
         let id = try await client.createProject(
             name: trimmedTitle,
             notes: notes,
@@ -132,6 +153,73 @@ struct ProjectAddCommand: AsyncParsableCommand {
         )
 
         try printOutcome(MutationOutcome(id: id, applied: true, undoRecorded: false, unsupportedUndo: ["project creation"], appliedFields: ["create"], message: "Created project: \(trimmedTitle)"), output: output)
+    }
+
+    private func createWithOutline(
+        title: String,
+        client: any ThingsClientProtocol,
+        when: Date?,
+        deadline: Date?,
+        tags: [String]
+    ) async throws {
+        var projectOutline = try outline.map { try ProjectOutline.parse(markdown: readOutline($0)) } ?? ProjectOutline()
+        for name in heading {
+            let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty, !trimmed.contains(where: \.isNewline) else {
+                throw ThingsError.invalidState("--heading must be a non-empty single line")
+            }
+            projectOutline.sections.append(.init(heading: trimmed))
+        }
+
+        let url = try ThingsJSONURL.createProject(
+            title: title,
+            notes: notes,
+            area: area,
+            when: when.map(Self.dayString),
+            deadline: deadline.map(Self.dayString),
+            tags: tags,
+            outline: projectOutline
+        )
+        let existingIDs = Set(try await client.fetchProjects().map(\.id))
+        try CommandRuntime.openURLScheme(url)
+
+        let todoCount = projectOutline.todos.count + projectOutline.sections.reduce(0) { $0 + $1.todos.count }
+        let summary = "\(projectOutline.sections.count) heading(s), \(todoCount) to-do(s)"
+        // The URL scheme doesn't return an ID; look for the new project in the database.
+        let id = await findNewProject(named: title, excluding: existingIDs, client: client)
+        let message = id == nil
+            ? "Sent project to Things: \(title) (\(summary)); verify in Things"
+            : "Created project: \(title) (\(summary))"
+        try printOutcome(MutationOutcome(id: id, applied: true, undoRecorded: false, unsupportedUndo: ["project creation"], appliedFields: ["create", "headings"], message: message), output: output)
+    }
+
+    private func readOutline(_ path: String) throws -> String {
+        if path == "-" {
+            return String(decoding: FileHandle.standardInput.readDataToEndOfFile(), as: UTF8.self)
+        }
+        do {
+            return try String(contentsOfFile: (path as NSString).expandingTildeInPath, encoding: .utf8)
+        } catch {
+            throw ThingsError.invalidState("Cannot read outline file \(path): \(error.localizedDescription)")
+        }
+    }
+
+    private func findNewProject(named title: String, excluding existing: Set<String>, client: any ThingsClientProtocol) async -> String? {
+        for _ in 0..<10 {
+            if let match = try? await client.fetchProjects().first(where: { $0.name == title && !existing.contains($0.id) }) {
+                return match.id
+            }
+            try? await Task.sleep(nanoseconds: 300_000_000)
+        }
+        return nil
+    }
+
+    private static func dayString(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
     }
 
     private func parseWhenDate(_ str: String) throws -> Date {

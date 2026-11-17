@@ -142,6 +142,8 @@ Create a new project
 | `--when <when>` | When to start (today, tomorrow, YYYY-MM-DD) Optional. |
 | `--deadline <deadline>` | Deadline date (YYYY-MM-DD) Optional. |
 | `--tags <tags>` | Tags (comma-separated) Optional. |
+| `--heading <heading>...` | Add an empty heading (repeatable; appended after --outline headings) Optional. |
+| `--outline <outline>` | Markdown outline file ('-' for stdin): '# Heading' and '- To-do' lines Optional. |
 | `--json` | Output a schema 1 JSON response with payload under data; takes precedence over --format Optional. |
 | `--no-color` | Suppress color output Optional. |
 | `--format <format>` | Todo-line template: {id}, {name}, {status}, {due}, {project}, {area}, {tags}; only used by todo renderers Optional. |
