@@ -271,43 +271,4 @@ struct ProjectsCommand: AsyncParsableCommand {
     }
 }
 
-// MARK: - Areas Command
-
-struct AreasCommand: AsyncParsableCommand {
-    static let configuration = CommandConfiguration(
-        commandName: "areas",
-        abstract: "List all areas",
-        discussion: """
-        Displays all areas from Things 3.
-
-        Areas represent different spheres of responsibility in your life
-        (e.g., "Work", "Personal", "Health"). Projects and todos can be
-        assigned to areas for organization.
-
-        Use area names with add --area or filter "area = 'Writing'".
-        This command lists areas; it does not create or rename them.
-
-        EXAMPLES:
-          clings areas                  List all areas
-          clings areas --json           Output as JSON
-
-        SEE ALSO:
-          projects, add --area
-        """
-    )
-
-    @OptionGroup var output: OutputOptions
-
-    func run() async throws {
-        let client = CommandRuntime.makeClient()
-        let areas = try await client.fetchAreas()
-
-        let formatter: OutputFormatter = output.json
-            ? JSONOutputFormatter()
-            : TextOutputFormatter(useColors: !output.noColor)
-
-        print(CLIResponse.render(formatter.format(areas: areas), output: output))
-    }
-}
-
 // Note: TagsCommand moved to TagCommands.swift to support subcommands (add, delete, rename)

@@ -259,6 +259,9 @@ final class RecordingThingsClient: ThingsClientProtocol, @unchecked Sendable {
     private(set) var createdTags: [String] = []
     private(set) var deletedTags: [String] = []
     private(set) var renamedTags: [(String, String)] = []
+    private(set) var createdAreas: [String] = []
+    private(set) var renamedAreas: [(String, String)] = []
+    private(set) var deletedAreas: [String] = []
 
     func fetchList(_ list: ListView) async throws -> [Todo] {
         if let error {
@@ -431,6 +434,28 @@ final class RecordingThingsClient: ThingsClientProtocol, @unchecked Sendable {
             throw error
         }
         renamedTags.append((oldName, newName))
+    }
+
+    func createArea(name: String) async throws -> Area {
+        if let error {
+            throw error
+        }
+        createdAreas.append(name)
+        return Area(id: "area-\(name)", name: name)
+    }
+
+    func renameArea(id: String, newName: String) async throws {
+        if let error {
+            throw error
+        }
+        renamedAreas.append((id, newName))
+    }
+
+    func deleteArea(id: String) async throws {
+        if let error {
+            throw error
+        }
+        deletedAreas.append(id)
     }
 
     func openInThings(id _: String) throws {}

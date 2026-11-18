@@ -639,6 +639,49 @@ public enum JXAScripts {
         """
     }
 
+    // MARK: - Area Management (AppleScript)
+
+    /// Create a new area via AppleScript.
+    /// Returns the ID of the created area.
+    public static func createAreaAppleScript(name: String) -> String {
+        """
+        tell application "Things3"
+            set newArea to make new area with properties {name:"\(name.appleScriptEscaped)"}
+            return id of newArea
+        end tell
+        """
+    }
+
+    /// Rename an area by ID via AppleScript.
+    public static func renameAreaAppleScript(id: String, newName: String) -> String {
+        """
+        tell application "Things3"
+            if exists area id "\(id.appleScriptEscaped)" then
+                set name of area id "\(id.appleScriptEscaped)" to "\(newName.appleScriptEscaped)"
+                return "renamed"
+            else
+                error "Area not found: \(id.appleScriptEscaped)"
+            end if
+        end tell
+        """
+    }
+
+    /// Delete an area by ID via AppleScript.
+    ///
+    /// Things moves everything in the area (projects and to-dos) to the Trash.
+    public static func deleteAreaAppleScript(id: String) -> String {
+        """
+        tell application "Things3"
+            if exists area id "\(id.appleScriptEscaped)" then
+                delete area id "\(id.appleScriptEscaped)"
+                return "deleted"
+            else
+                error "Area not found: \(id.appleScriptEscaped)"
+            end if
+        end tell
+        """
+    }
+
     /// Set tag names for a todo via AppleScript.
     public static func setTodoTagsAppleScript(id: String, tags: [String]) -> String {
         let tagList = tags.map { "\"\($0.appleScriptEscaped)\"" }.joined(separator: ", ")
