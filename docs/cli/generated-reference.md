@@ -164,10 +164,66 @@ Audit project health and missing next actions
 
 ## `clings areas`
 
-List all areas
+Manage areas
 
 | Argument | Description |
 | --- | --- |
+| `--version` | Show the version. Optional. |
+| `-h, --help` | Show help information. Optional. |
+
+## `clings areas list`
+
+List all areas
+
+Aliases: `ls`.
+
+| Argument | Description |
+| --- | --- |
+| `--json` | Output a schema 1 JSON response with payload under data; takes precedence over --format Optional. |
+| `--no-color` | Suppress color output Optional. |
+| `--format <format>` | Todo-line template: {id}, {name}, {status}, {due}, {project}, {area}, {tags}; only used by todo renderers Optional. |
+| `--version` | Show the version. Optional. |
+| `-h, --help` | Show help information. Optional. |
+
+## `clings areas add`
+
+Create a new area
+
+| Argument | Description |
+| --- | --- |
+| `<name>` | Name of the area to create Required. |
+| `--json` | Output a schema 1 JSON response with payload under data; takes precedence over --format Optional. |
+| `--no-color` | Suppress color output Optional. |
+| `--format <format>` | Todo-line template: {id}, {name}, {status}, {due}, {project}, {area}, {tags}; only used by todo renderers Optional. |
+| `--version` | Show the version. Optional. |
+| `-h, --help` | Show help information. Optional. |
+
+## `clings areas rename`
+
+Rename an area
+
+Aliases: `mv`.
+
+| Argument | Description |
+| --- | --- |
+| `<area>` | Current name or ID of the area Required. |
+| `<new-name>` | New name for the area Required. |
+| `--json` | Output a schema 1 JSON response with payload under data; takes precedence over --format Optional. |
+| `--no-color` | Suppress color output Optional. |
+| `--format <format>` | Todo-line template: {id}, {name}, {status}, {due}, {project}, {area}, {tags}; only used by todo renderers Optional. |
+| `--version` | Show the version. Optional. |
+| `-h, --help` | Show help information. Optional. |
+
+## `clings areas delete`
+
+Delete an area
+
+Aliases: `rm`.
+
+| Argument | Description |
+| --- | --- |
+| `<area>` | Name or ID of the area to delete Required. |
+| `--force, -f` | Skip confirmation prompt Optional. |
 | `--json` | Output a schema 1 JSON response with payload under data; takes precedence over --format Optional. |
 | `--no-color` | Suppress color output Optional. |
 | `--format <format>` | Todo-line template: {id}, {name}, {status}, {due}, {project}, {area}, {tags}; only used by todo renderers Optional. |

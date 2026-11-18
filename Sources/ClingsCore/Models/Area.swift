@@ -32,3 +32,29 @@ public struct Area: Codable, Identifiable, Equatable, Hashable, Sendable {
         tags = try container.decodeIfPresent([Tag].self, forKey: .tags) ?? []
     }
 }
+
+public extension Area {
+    /// Whether `name` names this area, ignoring case and surrounding spaces.
+    /// Things allows stray spaces in names (such as "Chores "), so this lets
+    /// people type what they see.
+    func hasName(_ name: String) -> Bool {
+        let trim = { (s: String) in s.trimmingCharacters(in: .whitespacesAndNewlines) }
+        return trim(self.name).caseInsensitiveCompare(trim(name)) == .orderedSame
+    }
+
+    /// Find the area a user means by an ID or a name.
+    static func resolve(_ reference: String, in areas: [Area]) throws -> Area {
+        if let byID = areas.first(where: { $0.id == reference }) {
+            return byID
+        }
+        let matches = areas.filter { $0.hasName(reference) }
+        guard let match = matches.first else {
+            throw ThingsError.notFound("Area '\(reference)'")
+        }
+        guard matches.count == 1 else {
+            let ids = matches.map(\.id).joined(separator: ", ")
+            throw ThingsError.invalidState("Several areas match '\(reference)'; pass one of these IDs instead: \(ids)")
+        }
+        return match
+    }
+}

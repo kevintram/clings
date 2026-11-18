@@ -104,6 +104,21 @@ struct HybridThingsClientTests {
         #expect(bridge.executeJSONScripts[6].contains("Renamed"))
     }
 
+    @Test func areaMethodsUseAppleScriptByID() async throws {
+        let bridge = MockJXAExecutor()
+        bridge.appleScriptResponses = [.success("area-id"), .success("renamed"), .success("deleted")]
+        let client = HybridThingsClient(database: MockThingsDatabaseReader(), jxaBridge: bridge)
+
+        let area = try await client.createArea(name: "Health")
+        try await client.renameArea(id: "area-id", newName: "Fitness")
+        try await client.deleteArea(id: "area-id")
+
+        #expect(area == Area(id: "area-id", name: "Health"))
+        #expect(bridge.appleScriptScripts[0].contains("make new area with properties {name:\"Health\"}"))
+        #expect(bridge.appleScriptScripts[1].contains("set name of area id \"area-id\" to \"Fitness\""))
+        #expect(bridge.appleScriptScripts[2].contains("delete area id \"area-id\""))
+    }
+
     @Test func writeMethodsPropagateFailures() async throws {
         let missingIDBridge = MockJXAExecutor()
         missingIDBridge.appleScriptResponses = try [.success(mutationResultJSON(success: true, appliedFields: ["create"]))]

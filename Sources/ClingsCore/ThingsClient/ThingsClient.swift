@@ -86,6 +86,11 @@ public protocol ThingsClientProtocol: Sendable {
     func deleteTag(name: String) async throws
     func renameTag(oldName: String, newName: String) async throws
 
+    // Area management
+    func createArea(name: String) async throws -> Area
+    func renameArea(id: String, newName: String) async throws
+    func deleteArea(id: String) async throws
+
     // Open (disabled)
     func openInThings(id: String) throws
     func openInThings(list: ListView) throws
@@ -421,6 +426,33 @@ public actor ThingsClient: ThingsClientProtocol {
         let script = JXAScripts.renameTagAppleScript(oldName: oldName, newName: newName)
         do {
             _ = try await bridge.executeAppleScript(script)
+        } catch let error as JXAError {
+            throw ThingsError.jxaError(error)
+        }
+    }
+
+    // MARK: - Area Management
+
+    public func createArea(name: String) async throws -> Area {
+        do {
+            let areaID = try await bridge.executeAppleScript(JXAScripts.createAreaAppleScript(name: name))
+            return Area(id: areaID, name: name)
+        } catch let error as JXAError {
+            throw ThingsError.jxaError(error)
+        }
+    }
+
+    public func renameArea(id: String, newName: String) async throws {
+        do {
+            _ = try await bridge.executeAppleScript(JXAScripts.renameAreaAppleScript(id: id, newName: newName))
+        } catch let error as JXAError {
+            throw ThingsError.jxaError(error)
+        }
+    }
+
+    public func deleteArea(id: String) async throws {
+        do {
+            _ = try await bridge.executeAppleScript(JXAScripts.deleteAreaAppleScript(id: id))
         } catch let error as JXAError {
             throw ThingsError.jxaError(error)
         }

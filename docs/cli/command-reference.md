@@ -49,7 +49,7 @@ clings <command> <subcommand> --help
 | `clings someday` | Show someday/maybe items | `clings someday` |
 | `clings logbook` | Show completed tasks | `clings logbook --json` |
 | `clings projects` | List projects | `clings projects --json` |
-| `clings areas` | List areas | `clings areas` |
+| `clings areas list` | List areas | `clings areas ls --json` |
 | `clings tags list` | List tags | `clings tags ls --json` |
 | `clings show <id>` | Show one todo in detail | `clings show abc123 --json` |
 
@@ -306,12 +306,17 @@ or `YYYY-MM-DD`. `--heading NAME` (repeatable) and `--outline FILE` (`-` for
 stdin; `# Heading` and `- To-do` lines) create the project with headings and
 to-dos through the `things:///json` URL command; Things cannot add headings to
 an existing project. `project audit` reports open-project health without writes.
-`areas` lists areas but does not create or rename them.
+
+`areas list` (`ls`, default) lists areas. `areas add NAME` creates one and
+refuses a name that already exists; `areas rename AREA NEW` (`mv`) renames it;
+`areas delete AREA` (`rm`) prompts unless `--force`/`-f` is passed. AREA is an
+ID or a name; names match ignoring case and surrounding spaces. Deleting an area
+moves its projects and todos to the Things Trash, and the prompt shows the counts.
 
 `tags list` (`ls`, default) lists definitions. `tags add NAME`
 creates one; `tags rename OLD NEW` (`mv`) renames it; `tags delete NAME` (`rm`) removes
 it from tagged todos and prompts unless `--force`/`-f` is passed. Tag deletion
-does not delete todos. Project/tag management is not covered by undo.
+does not delete todos. Project, area, and tag management is not covered by undo.
 
 ### focus, pick, undo
 

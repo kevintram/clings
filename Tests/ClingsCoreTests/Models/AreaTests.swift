@@ -127,4 +127,26 @@ struct AreaTests {
             #expect(TestData.allAreas.count == 2)
         }
     }
+
+    @Suite("Resolve")
+    struct Resolve {
+        let areas = [
+            Area(id: "chores-id", name: "🧹 Chores "),
+            Area(id: "dup-1", name: "Dup"),
+            Area(id: "dup-2", name: "dup"),
+        ]
+
+        @Test func matchesID() throws {
+            #expect(try Area.resolve("dup-2", in: areas).name == "dup")
+        }
+
+        @Test func matchesNameIgnoringCaseAndSurroundingSpaces() throws {
+            #expect(try Area.resolve("🧹 chores", in: areas).id == "chores-id")
+        }
+
+        @Test func rejectsAmbiguousOrUnknownNames() {
+            #expect(throws: ThingsError.self) { try Area.resolve("Dup", in: areas) }
+            #expect(throws: ThingsError.self) { try Area.resolve("Nope", in: areas) }
+        }
+    }
 }

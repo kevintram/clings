@@ -240,6 +240,33 @@ public final class HybridThingsClient: ThingsClientProtocol, @unchecked Sendable
         }
     }
 
+    // MARK: - Area Management
+
+    public func createArea(name: String) async throws -> Area {
+        do {
+            let areaID = try await jxaBridge.executeAppleScript(JXAScripts.createAreaAppleScript(name: name))
+            return Area(id: areaID, name: name)
+        } catch let error as JXAError {
+            throw ThingsError.jxaError(error)
+        }
+    }
+
+    public func renameArea(id: String, newName: String) async throws {
+        do {
+            _ = try await jxaBridge.executeAppleScript(JXAScripts.renameAreaAppleScript(id: id, newName: newName))
+        } catch let error as JXAError {
+            throw ThingsError.jxaError(error)
+        }
+    }
+
+    public func deleteArea(id: String) async throws {
+        do {
+            _ = try await jxaBridge.executeAppleScript(JXAScripts.deleteAreaAppleScript(id: id))
+        } catch let error as JXAError {
+            throw ThingsError.jxaError(error)
+        }
+    }
+
     // MARK: - Open (disabled)
 
     public nonisolated func openInThings(id _: String) throws {

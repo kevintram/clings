@@ -205,6 +205,21 @@ final class MockThingsClient: ThingsClientProtocol, @unchecked Sendable {
         renamedTags.append((oldName, newName))
     }
 
+    // MARK: - Area Management
+
+    func createArea(name: String) async throws -> Area {
+        if let error = errorToThrow { throw error }
+        return Area(id: "mock-area", name: name)
+    }
+
+    func renameArea(id _: String, newName _: String) async throws {
+        if let error = errorToThrow { throw error }
+    }
+
+    func deleteArea(id _: String) async throws {
+        if let error = errorToThrow { throw error }
+    }
+
     // MARK: - Convenience Setup
 
     /// Reset all tracking arrays.

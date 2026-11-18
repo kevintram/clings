@@ -88,7 +88,7 @@ struct CommandExecutionTests {
         #expect(projectsOutput.contains("\"name\" : \"Release\""))
 
         let areasOutput = try await runAsync(
-            AreasCommand.parse([]),
+            AreasListCommand.parse([]),
             client: client
         )
         #expect(areasOutput.contains("Work"))
@@ -381,6 +381,50 @@ struct CommandExecutionTests {
             )
             #expect(projectAuditOutput.contains("\"items\""))
         }
+    }
+
+    @Test func areasCommandsMutateThroughRuntimeClient() async throws {
+        try await CommandTestSupport.withTemporaryConfigDirectory { _ in
+            let client = RecordingThingsClient()
+            client.areas = [Area(id: "chores-id", name: "🧹 Chores ")]
+
+            let listOutput = try await runAsync(AreasListCommand.parse([]), client: client)
+            #expect(listOutput.contains("Chores"))
+
+            let addOutput = try await runAsync(AreasAddCommand.parse(["Health"]), client: client)
+            #expect(addOutput.contains("Created area: Health"))
+            await #expect(throws: (any Error).self) {
+                _ = try await runAsync(AreasAddCommand.parse(["🧹 chores"]), client: client)
+            }
+            #expect(client.createdAreas == ["Health"])
+
+            _ = try await runAsync(AreasRenameCommand.parse(["🧹 chores", "Home"]), client: client)
+            #expect(client.renamedAreas.first?.0 == "chores-id")
+            #expect(client.renamedAreas.first?.1 == "Home")
+
+            _ = try await runAsync(AreasDeleteCommand.parse(["🧹 chores"]), client: client, inputs: ["yes"])
+            #expect(client.deletedAreas == ["chores-id"])
+        }
+    }
+
+    @Test func areaDeletePromptCountsWhatThingsWillTrash() {
+        let chores = Area(id: "chores-id", name: "Chores")
+        let other = Area(id: "other-id", name: "Other")
+        let workout = Project(id: "workout", name: "Workout", area: chores)
+        let loose = CommandFixtures.todo(id: "loose", name: "Wash clothes", project: nil, area: chores)
+
+        let prompt = AreasDeleteCommand.confirmationPrompt(
+            for: chores,
+            projects: [workout, Project(id: "elsewhere", name: "Elsewhere", area: other)],
+            todos: [
+                loose,
+                loose, // the same todo shows up in Today and Anytime
+                CommandFixtures.todo(id: "in-project", name: "Run", project: workout, area: chores),
+                CommandFixtures.todo(id: "other", name: "Other", project: nil, area: other),
+            ]
+        )
+
+        #expect(prompt.contains("1 project(s) and 1 other todo(s)"))
     }
 
     @Test func tagsAndBulkCommandsMutateThroughRuntimeClient() async throws {
