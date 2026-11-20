@@ -361,6 +361,19 @@ struct JXAScriptsTests {
             }
         }
 
+        /// Things reads `tag names` as one comma-separated string. Coercing the
+        /// AppleScript list with `as string` dropped the commas and made Things
+        /// create a single fused tag such as "docsurgent".
+        @Test func setTagScriptsSendCommaSeparatedTagNames() {
+            for script in [
+                JXAScripts.setTodoTagsAppleScript(id: "todo", tags: ["docs", "say \"hi\""]),
+                JXAScripts.setProjectTagsAppleScript(id: "project", tags: ["docs", "say \"hi\""]),
+            ] {
+                #expect(script.contains(#"set tagNamesStr to "docs, say \"hi\"""#))
+                #expect(!script.contains("as string"))
+            }
+        }
+
         @Test func createTodoUsesAppleScript() {
             let script = JXAScripts.createTodo(name: "Task")
             #expect(script.contains("tell application \"Things3\""))

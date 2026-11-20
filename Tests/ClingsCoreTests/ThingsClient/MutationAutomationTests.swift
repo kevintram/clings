@@ -73,6 +73,22 @@ struct MutationAutomationTests {
         #expect(result.error?.contains("later \"assignment\" failed") == true)
     }
 
+    /// A clean run has no error, which serializes as JSON null. AppleScript
+    /// reads a bare `null()` as its own null constant, which JSON can't encode,
+    /// so every successful write used to report a partial failure.
+    @Test func trackedAppleScriptReportsSuccessThroughRealExecutor() async throws {
+        let script = JXAScripts.trackedAppleScript(id: nil, body: """
+        set mutationID to "created-id"
+        set end of appliedFields to "create"
+        """)
+        let output = try await JXABridge(timeout: 3).executeAppleScript(script)
+        let result = try MutationResult.appleScript(output)
+        #expect(result.success == true)
+        #expect(result.id == "created-id")
+        #expect(result.appliedFields == ["create"])
+        #expect(result.error == nil)
+    }
+
     @Test func updateScriptTracksAssignmentBeforeLaterSetterFailure() async throws {
         let update = JXAScripts.updateTodo(id: "task", name: "Changed", notes: "Rejected")
         let script = """

@@ -26,13 +26,13 @@ public enum JXAScripts {
             set payload to current application's NSMutableDictionary's dictionary()
             payload's setObject:(current application's NSNumber's numberWithBool:successFlag) forKey:"success"
             if mutationID is missing value then
-                payload's setObject:(current application's NSNull's null()) forKey:"id"
+                payload's setObject:(current application's NSNull's |null|()) forKey:"id"
             else
                 payload's setObject:(mutationID as text) forKey:"id"
             end if
             payload's setObject:(current application's NSArray's arrayWithArray:appliedFields) forKey:"appliedFields"
             if errorMessage is missing value then
-                payload's setObject:(current application's NSNull's null()) forKey:"error"
+                payload's setObject:(current application's NSNull's |null|()) forKey:"error"
             else
                 payload's setObject:(errorMessage as text) forKey:"error"
             end if
@@ -694,7 +694,7 @@ public enum JXAScripts {
                     make new tag with properties {name: tagName}
                 end if
             end repeat
-            set tagNamesStr to tagNames as string
+            set tagNamesStr to "\(tags.joined(separator: ", ").appleScriptEscaped)"
             set theTodo to to do id "\(id.appleScriptEscaped)"
             if not (exists theTodo) then
                 error "Todo not found: \(id.appleScriptEscaped)"
@@ -717,7 +717,7 @@ public enum JXAScripts {
                     make new tag with properties {name: tagName}
                 end if
             end repeat
-            set tagNamesStr to tagNames as string
+            set tagNamesStr to "\(tags.joined(separator: ", ").appleScriptEscaped)"
             set theProject to project id "\(id.appleScriptEscaped)"
             if not (exists theProject) then
                 error "Project not found: \(id.appleScriptEscaped)"
